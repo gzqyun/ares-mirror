@@ -8,6 +8,35 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
+      - name: TLS probe
+        run: |
+          set +e
+          {
+            echo "=== 1. TLS 1.2 ==="
+            curl -s --tlsv1.2 --tls-max 1.2 -o /dev/null -w "code=%{http_code} err=%{errormsg}\n" -m 20 "https://www.theares.com.tw/@resource/css/ares.css"
+            echo "=== 2. HTTP/1.1 ==="
+            curl -s --http1.1 -o /dev/null -w "code=%{http_code} err=%{errormsg}\n" -m 20 "https://www.theares.com.tw/@resource/css/ares.css"
+            echo "=== 3. naked domain ==="
+            curl -s -o /dev/null -w "code=%{http_code} err=%{errormsg}\n" -m 20 "https://theares.com.tw/@resource/css/ares.css"
+            echo "=== 4. python ==="
+            python3 -c "
+import urllib.request, ssl
+try:
+    ctx = ssl.create_default_context()
+    ctx.check_hostname = False
+    ctx.verify_mode = ssl.CERT_NONE
+    r = urllib.request.urlopen('https://www.theares.com.tw/@resource/css/ares.css', timeout=20, context=ctx)
+    print('python OK', r.status, len(r.read()))
+except Exception as e:
+    print('python FAIL', type(e).__name__, str(e)[:200])
+"
+            echo "=== 5. curl code for a few files ==="
+            for p in "@resource/images/main/game_01.png" "@resource/images/games/GMAE01_01.jpg" "@resource/images/games/EARTH.mp4"; do
+              curl -s -o /dev/null -w "code=%{http_code} size=%{size_download} err=%{errormsg} $p\n" -m 25 "https://www.theares.com.tw/$p"
+            done
+          } > probe.txt 2>&1
+          cat probe.txt
+
       - name: Fetch files
         run: |
           mkdir -p mirror/www.theares.com.tw
@@ -204,6 +233,7 @@ jobs:
       - name: Package
         run: |
           cd mirror
+          cp ../probe.txt . 2>/dev/null || true
           tar -czf /tmp/theares-mirror.tar.gz .
           du -sh /tmp/theares-mirror.tar.gz
           ls -la /tmp/theares-mirror.tar.gz
