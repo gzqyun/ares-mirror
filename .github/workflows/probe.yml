@@ -1,6 +1,6 @@
 name: TLS Probe
 
-on:
+"on":
   workflow_dispatch:
 
 jobs:
@@ -22,16 +22,16 @@ jobs:
             curl -s --no-keepalive -o /dev/null -w "code=%{http_code} err=%{errormsg}\n" -m 20 "https://www.theares.com.tw/@resource/css/ares.css"
             echo "=== 5. old cipher list ==="
             curl -s --ciphers "ECDHE-RSA-AES128-GCM-SHA256" -o /dev/null -w "code=%{http_code} err=%{errormsg}\n" -m 20 "https://www.theares.com.tw/@resource/css/ares.css"
-            echo "=== 6. http/2 prior knowledge ==="
+            echo "=== 6. http2 ==="
             curl -s --http2 -o /dev/null -w "code=%{http_code} err=%{errormsg}\n" -m 20 "https://www.theares.com.tw/@resource/css/ares.css"
             echo "=== 7. naked domain ==="
             curl -s -o /dev/null -w "code=%{http_code} err=%{errormsg}\n" -m 20 "https://theares.com.tw/@resource/css/ares.css"
-            echo "=== 8. IP直接+SNI ==="
+            echo "=== 8. resolve+SNI ==="
             curl -s --resolve www.theares.com.tw:443:34.36.109.170 -o /dev/null -w "code=%{http_code} err=%{errormsg}\n" -m 20 "https://www.theares.com.tw/@resource/css/ares.css"
             echo "=== 9. wget ==="
             timeout 20 wget -q --no-check-certificate -O /tmp/t.css "https://www.theares.com.tw/@resource/css/ares.css" 2>&1 | tail -3
             echo "wget exit: $?"
-            echo "=== 10. python requests ==="
+            echo "=== 10. python ==="
             python3 -c "
 import urllib.request, ssl
 try:
