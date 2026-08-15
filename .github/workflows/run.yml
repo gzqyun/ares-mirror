@@ -1,7 +1,6 @@
 name: Fetch Ares
 
-on:
-  workflow_dispatch:
+on: workflow_dispatch
 
 jobs:
   mirror:
