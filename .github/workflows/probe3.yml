@@ -1,0 +1,34 @@
+name: Final Probe
+
+on: workflow_dispatch
+
+jobs:
+  p:
+    runs-on: ubuntu-latest
+    steps:
+      - name: probe
+        run: |
+          set +e
+          {
+            echo "=== HTTP 明文(80端口) ==="
+            curl -s -o /dev/null -w "code=%{http_code} err=%{errormsg}\n" -m 15 "http://www.theares.com.tw/"
+            echo "=== 443 TCP 测试(不TLS) ==="
+            timeout 10 bash -c "echo > /dev/tcp/www.theares.com.tw/443" && echo "TCP 443 OK" || echo "TCP 443 FAIL"
+            echo "=== 其他端口 ==="
+            for p in 80 443 8080 8443; do
+              timeout 6 bash -c "echo > /dev/tcp/www.theares.com.tw/$p" 2>/dev/null && echo "port $p OPEN" || echo "port $p closed"
+            done
+            echo "=== 备用: game 子域 ==="
+            for d in "game.theares.com.tw" "www2.theares.com.tw" "api.theares.com.tw"; do
+              ip=$(getent hosts $d | awk '{print $1}' | head -1)
+              echo "$d -> ${ip:-none}"
+            done
+            echo "=== 检查裸IP上的HTTP服务器(可能直接IP可访问) ==="
+            curl -s -o /dev/null -w "code=%{http_code} err=%{errormsg}\n" -m 15 -H "Host: www.theares.com.tw" "http://34.36.109.170/"
+          } > probe2.txt 2>&1
+          cat probe2.txt
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: probe2
+          path: probe2.txt
