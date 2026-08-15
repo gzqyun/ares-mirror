@@ -12,6 +12,7 @@ jobs:
         run: |
           mkdir -p mirror/www.theares.com.tw
           cd mirror/www.theares.com.tw
+          set +e
           fail=0
           for path in \
             "@resource/images/main/game_01.png" \
