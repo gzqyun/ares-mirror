@@ -1,0 +1,166 @@
+name: Wayback Mirror
+
+on: workflow_dispatch
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Fetch from wayback
+        run: |
+          set +e
+          mkdir -p mirror
+          SNAP="20260611103027"
+          ok=0; fail=0
+          for path in \
+            "@resource/images/main/game_01.png" \
+            "@resource/images/main/game_01_mo.png" \
+            "@resource/images/main/game_02.png" \
+            "@resource/images/main/game_02_mo.png" \
+            "@resource/images/main/game_03.png" \
+            "@resource/images/main/game_03_mo.png" \
+            "@resource/images/games/GMAE01_01.jpg" \
+            "@resource/images/games/GMAE01_01_MO.jpg" \
+            "@resource/images/games/GMAE01_02.jpg" \
+            "@resource/images/games/GMAE01_02_MO.jpg" \
+            "@resource/images/games/GMAE01_03.jpg" \
+            "@resource/images/games/GMAE01_03_MO.jpg" \
+            "@resource/images/games/GMAE01_04.jpg" \
+            "@resource/images/games/GMAE01_04_MO.jpg" \
+            "@resource/images/games/GMAE01_05.jpg" \
+            "@resource/images/games/GMAE01_05_MO.jpg" \
+            "@resource/images/games/GMAE01_06.jpg" \
+            "@resource/images/games/GMAE01_06_MO.jpg" \
+            "@resource/images/games/story-01.png" \
+            "@resource/images/games/story-02.png" \
+            "@resource/images/games/story-03.png" \
+            "@resource/images/games/story-04.png" \
+            "@resource/images/games/story-05.png" \
+            "@resource/images/games/story-06.png" \
+            "@resource/images/games/engineer.png" \
+            "@resource/images/games/engineer_mo.png" \
+            "@resource/images/games/warlock.png" \
+            "@resource/images/games/warlock_mo.png" \
+            "@resource/images/games/warload.png" \
+            "@resource/images/games/warload_mo.png" \
+            "@resource/images/games/hunter.png" \
+            "@resource/images/games/hunter_mo.png" \
+            "@resource/images/games/Suit_Box_01.png" \
+            "@resource/images/games/Suit_Box_02.png" \
+            "@resource/images/games/Suit_Box_03.png" \
+            "@resource/images/games/Suit_Box_04.png" \
+            "@resource/images/games/suit01_000.png" \
+            "@resource/images/games/suit01_001.png" \
+            "@resource/images/games/suit02_000.png" \
+            "@resource/images/games/suit02_001.png" \
+            "@resource/images/games/suit03_000.png" \
+            "@resource/images/games/suit03_001.png" \
+            "@resource/images/games/suit04_000.png" \
+            "@resource/images/games/suit04_001.png" \
+            "@resource/images/games/trailer-00.jpg" \
+            "@resource/images/games/trailer-01.jpg" \
+            "@resource/images/games/trailer-02.jpg" \
+            "@resource/images/games/trailer-03.jpg" \
+            "@resource/images/games/GAME02.jpg" \
+            "@resource/images/games/GAME04.jpg" \
+            "@resource/images/games/GAME03_mask_dot.svg" \
+            "@resource/images/games/GAME04_box.svg" \
+            "@resource/images/games/world01-1.png" \
+            "@resource/images/games/world01-2.png" \
+            "@resource/images/games/world02-1.png" \
+            "@resource/images/games/world02-2.png" \
+            "@resource/images/games/world02.svg" \
+            "@resource/images/games/world03-1.png" \
+            "@resource/images/games/world03-2.png" \
+            "@resource/images/games/world03.svg" \
+            "@resource/images/games/world04-1.png" \
+            "@resource/images/games/world04.svg" \
+            "@resource/images/games/world05-1.png" \
+            "@resource/images/games/world05-2.png" \
+            "@resource/images/games/world05.svg" \
+            "@resource/images/games/GAME01_arrow_btn.svg" \
+            "@resource/images/games/GAME_Deco_line_PC.svg" \
+            "@resource/images/games/GAME_play.svg" \
+            "@resource/images/games/GAME_play2.png" \
+            "@resource/images/@common/back_btn.png" \
+            "@resource/images/@common/back_to_home.svg" \
+            "@resource/images/@common/btn_go_mypage.svg" \
+            "@resource/images/@common/favicon.ico" \
+            "@resource/images/@common/go-btn.json" \
+            "@resource/images/@common/swiper_btn.json" \
+            "@resource/images/@common/Full_line.json" \
+            "@resource/images/@common/Step-Title.json" \
+            "@resource/images/@common/Story_Line_MO.json" \
+            "@resource/images/@common/Story_Line_PC.json" \
+            "@resource/images/@common/DS_Line.json" \
+            "@resource/images/@common/SpaceName-Hover.json" \
+            "@resource/images/@common/SpaceName-Load.json" \
+            "@resource/images/@common/suit01.svg" \
+            "@resource/images/@common/suit02.svg" \
+            "@resource/images/@common/suit03.svg" \
+            "@resource/images/@common/suit04.svg" \
+            "@resource/images/@common/trailer_btn.png" \
+            "@resource/images/@common/logo-w.svg" \
+            "@resource/images/@common/menu_mobile.svg" \
+            "@resource/images/@common/close_mobile.svg" \
+            "@resource/images/@ico/play.svg" \
+            "@resource/images/@ico/pause.svg" \
+            "@resource/images/@ico/search.svg" \
+            "@resource/images/@ico/facebook2.svg" \
+            "@resource/images/@ico/youtube2.svg" \
+            "@resource/images/@ico/date.svg" \
+            "@resource/images/@ico/like.svg" \
+            "@resource/images/@ico/muted.svg" \
+            "@resource/images/@ico/new.svg" \
+            "@resource/images/@ico/notice.svg" \
+            "@resource/images/@ico/sort.svg" \
+            "@resource/images/@ico/sound.svg" \
+            "@resource/images/@ico/view.svg" \
+            "@resource/images/@ico/arrow_16.svg" \
+            "@resource/images/@ico/photo.svg" \
+            "@resource/images/@ico/profile.svg" \
+            "@resource/images/@ico/weapon01-1.png" \
+            "@resource/images/@ico/weapon01-2.png" \
+            "@resource/images/@ico/weapon02-1.png" \
+            "@resource/images/@ico/weapon02-2.png" \
+            "@resource/images/@ico/weapon03-1.png" \
+            "@resource/images/@ico/weapon03-2.png" \
+            "@resource/images/@ico/weapon04-1.png" \
+            "@resource/images/@ico/weapon04-2.png" \
+            "@resource/images/@ico/suit-line.png" \
+            "@resource/images/main/ico_apple_black.png" \
+            "@resource/images/main/ico_playstore_black.png" \
+            "@resource/images/main/ico_window_black.png" \
+            "@resource/images/share_img.png" \
+            "@resource/js/inc.js" \
+            "include/img/alert/alert_03.png" \
+            ; do
+            mkdir -p "mirror/$(dirname "$path")"
+            # wayback 快照URL
+            curl -sL --max-time 40 -A "Mozilla/5.0" \
+              -o "mirror/$path" \
+              "https://web.archive.org/web/${SNAP}id_/https://www.theares.com.tw/$path"
+            size=$(stat -c %s "mirror/$path" 2>/dev/null || echo 0)
+            head -c 20 "mirror/$path" | grep -q "Not Found\|not found" && rm -f "mirror/$path"
+            if [ -s "mirror/$path" ]; then
+              ok=$((ok+1))
+              echo "OK   $path ($size B)"
+            else
+              rm -f "mirror/$path"
+              fail=$((fail+1))
+              echo "FAIL $path"
+            fi
+          done
+          echo "=== summary: ok=$ok fail=$fail ==="
+      - name: Package
+        run: |
+          tar -czf theares-mirror.tar.gz mirror
+          du -sh mirror
+          ls -la theares-mirror.tar.gz
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: theares-mirror
+          path: theares-mirror.tar.gz
+          retention-days: 14
