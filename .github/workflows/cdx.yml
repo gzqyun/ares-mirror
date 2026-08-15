@@ -1,0 +1,32 @@
+name: Wayback GMAE
+
+on: workflow_dispatch
+
+jobs:
+  g:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: CDX query + fetch GMAE/story
+        run: |
+          set +e
+          mkdir -p mirror/games
+          {
+            echo "=== CDX 查询 GMAE01_01.jpg 存档 ==="
+            curl -s -m 30 "http://web.archive.org/cdx/search/cdx?url=www.theares.com.tw/@resource/images/games/GMAE01_01.jpg&output=text&limit=10"
+            echo ""
+            echo "=== CDX 查询 story-01.png ==="
+            curl -s -m 30 "http://web.archive.org/cdx/search/cdx?url=www.theares.com.tw/@resource/images/games/story-01.png&output=text&limit=10"
+            echo ""
+            echo "=== CDX 查询 game_01.png(验证格式) ==="
+            curl -s -m 30 "http://web.archive.org/cdx/search/cdx?url=www.theares.com.tw/@resource/images/main/game_01.png&output=text&limit=5"
+            echo ""
+            echo "=== CDX 查询整个 games 目录 ==="
+            curl -s -m 30 "http://web.archive.org/cdx/search/cdx?url=www.theares.com.tw/@resource/images/games/*&output=text&limit=30"
+          } > cdx.txt 2>&1
+          cat cdx.txt
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: cdx-report
+          path: cdx.txt
