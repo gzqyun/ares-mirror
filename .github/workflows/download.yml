@@ -8,19 +8,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - name: Download site
+      - name: Fetch files
         run: |
-          mkdir -p mirror
-          wget -q --no-check-certificate \
-            --recursive --level=inf --no-parent \
-            --convert-links --page-requisites \
-            --continue --timeout=20 --tries=2 \
-            --user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0" \
-            -P mirror "https://www.theares.com.tw/"
-
-      - name: Fetch missing files
-        run: |
-          cd mirror
+          mkdir -p mirror/www.theares.com.tw
+          cd mirror/www.theares.com.tw
+          fail=0
           for path in \
             "@resource/images/main/game_01.png" \
             "@resource/images/main/game_01_mo.png" \
@@ -157,7 +149,6 @@ jobs:
             "@resource/images/main/ico_playstore_black.png" \
             "@resource/images/main/ico_window_black.png" \
             "@resource/images/share_img.png" \
-            "@resource/images/@common/Full_line.json" \
             "@resource/js/inc.js" \
             "@resource/js/ares.js" \
             "@resource/js/lib/swiper-bundle.min.js" \
@@ -195,27 +186,30 @@ jobs:
             "include/font/PretendardVariable.woff2" \
             "include/font/ITCErasStd-Bold.woff2" \
             ; do
-            out="$path"
-            mkdir -p "$(dirname "$out")"
-            if [ ! -s "$out" ]; then
-              curl -sL --max-time 25 \
-                -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0" \
-                -o "$out" "https://www.theares.com.tw/$path" \
-                && [ -s "$out" ] \
-                && echo "OK: $path ($(wc -c < "$out")B)" \
-                || { rm -f "$out"; echo "FAIL: $path"; }
+            mkdir -p "$(dirname "$path")"
+            code=$(curl -sL --max-time 25 -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0" \
+              -o "$path" -w "%{http_code}" "https://www.theares.com.tw/$path")
+            size=$(stat -c %s "$path" 2>/dev/null || echo 0)
+            if [ "$code" = "200" ] && [ "$size" -gt 100 ]; then
+              echo "OK   $path ($size B)"
+            else
+              rm -f "$path"
+              echo "FAIL $code $path"
+              fail=1
             fi
           done
+          echo "fail_flag=$fail"
 
       - name: Package
         run: |
-          tar -czf theares-mirror.tar.gz mirror
-          du -sh mirror
-          ls -la theares-mirror.tar.gz
+          cd mirror
+          tar -czf /tmp/theares-mirror.tar.gz .
+          du -sh /tmp/theares-mirror.tar.gz
+          ls -la /tmp/theares-mirror.tar.gz
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: theares-mirror
-          path: theares-mirror.tar.gz
+          path: /tmp/theares-mirror.tar.gz
           retention-days: 14
