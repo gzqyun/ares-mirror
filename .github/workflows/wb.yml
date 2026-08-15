@@ -1,0 +1,28 @@
+name: Wayback Probe
+
+on: workflow_dispatch
+
+jobs:
+  p:
+    runs-on: ubuntu-latest
+    steps:
+      - name: probe wayback
+        run: |
+          set +e
+          {
+            echo "=== 1. wayback CDX 查询(该站所有存档) ==="
+            curl -s -m 30 "http://web.archive.org/cdx/search/cdx?url=theares.com.tw*&output=text&limit=20&collapse=urlkey" | head -20
+            echo ""
+            echo "=== 2. 最近快照 ==="
+            curl -s -m 30 "http://archive.org/wayback/available?url=www.theares.com.tw&timestamp=2026" | head -5
+            echo ""
+            echo "=== 3. 尝试抓取页面快照 ==="
+            curl -s -m 40 -o /tmp/page.html -w "code=%{http_code} size=%{size_download}\n" "http://web.archive.org/web/2026/https://www.theares.com.tw/"
+            head -c 300 /tmp/page.html
+          } > wb.txt 2>&1
+          cat wb.txt
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: wayback-report
+          path: wb.txt
