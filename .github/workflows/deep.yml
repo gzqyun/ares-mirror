@@ -1,0 +1,35 @@
+name: Wayback Deep Search
+
+on: workflow_dispatch
+
+jobs:
+  d:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: deep search
+        run: |
+          set +e
+          {
+            echo "=== 1. CDX 全量搜索 GMAE(不限定具体文件) ==="
+            curl -s -m 40 "http://web.archive.org/cdx/search/cdx?url=www.theares.com.tw&matchType=domain&filter=urlkey:.*GMAE.*&output=text&limit=30"
+            echo "---"
+            echo "=== 2. CDX 全量搜索 story ==="
+            curl -s -m 40 "http://web.archive.org/cdx/search/cdx?url=www.theares.com.tw&matchType=domain&filter=urlkey:.*story.*&output=text&limit=30"
+            echo "---"
+            echo "=== 3. CDX 全量搜索 suit ==="
+            curl -s -m 40 "http://web.archive.org/cdx/search/cdx?url=www.theares.com.tw&matchType=domain&filter=urlkey:.*suit.*&output=text&limit=30"
+            echo "---"
+            echo "=== 4. CDX 全量搜索 engineer/hunter/warlock ==="
+            curl -s -m 40 "http://web.archive.org/cdx/search/cdx?url=www.theares.com.tw&matchType=domain&filter=urlkey:.*(engineer|hunter|warlock|warload).*&output=text&limit=30"
+            echo "---"
+            echo "=== 5. 首页快照引用检查(2025-09-13 快照中的图片列表) ==="
+            curl -s -m 40 "http://web.archive.org/web/20250913231235id_/https://www.theares.com.tw/" -o /tmp/home.html -w "code=%{http_code} size=%{size_download}\n"
+            grep -oE '@resource/images/[^"]+' /tmp/home.html | sort -u | head -30
+          } > deep.txt 2>&1
+          cat deep.txt
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: deep-report
+          path: deep.txt
